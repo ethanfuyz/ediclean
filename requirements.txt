@@ -1,0 +1,10 @@
+torch
+transformers
+datasets
+scikit-learn
+numpy
+tqdm
+PyYAML
+pyspellchecker
+sentencepiece
+accelerate

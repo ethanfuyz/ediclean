@@ -1,0 +1,360 @@
+project_name: ediclean_confidence_imdb
+seed: 42
+
+paths:
+  output_dir: outputs
+  results_file: outputs/results.json
+  predictions_file: outputs/predictions.json
+  cache_dir: cache
+  downstream_model_dir: models/downstream
+  cleaner_model_dir: models/cleaners
+
+# ============================================================
+# Dataset
+# ============================================================
+# IMDB is a binary sentiment dataset with long movie reviews.
+# The preset in src/ediclean/data.py will automatically resolve:
+#   provider: imdb
+#   train_split: train
+#   validation_split: test
+#   text_field: text
+#   label_field: label
+#   labels: 0=negative, 1=positive
+# ============================================================
+downstream_dataset:
+  dataset_key: imdb
+
+  # IMDB is much larger and longer than SST-2.
+  # Recommended first run:
+  #   max_train_samples: 10000
+  #   max_eval_samples: 2000
+  # For full IMDB, change them to null.
+  max_train_samples: 10000
+  max_eval_samples: 2000
+  max_test_samples: null
+
+  # Important for IMDB because its test split may be ordered by label.
+  balanced_sampling: true
+  shuffle_before_select: true
+
+# Cleaner training data.
+# source: downstream_train means:
+#   IMDB train clean text -> generate noisy-clean pairs
+#   noisy IMDB review -> clean IMDB review
+cleaner_dataset:
+  source: downstream_train
+  max_train_samples: 10000
+  validation_fraction: 0.05
+  max_eval_samples: 1000
+
+# ============================================================
+# Human-like noise
+# ============================================================
+noise:
+  enabled: true
+  type: human_like
+  ratio: 0.40
+  min_word_length: 4
+  focus_sentiment_words: true
+  preserve_label: true
+  punctuation_drop_prob: 0.75
+  ops_multiplier: 10
+
+  human_like_weights:
+    char_swap: 0.16
+    char_delete: 0.15
+    char_insert: 0.14
+    keyboard_substitute: 0.13
+    repeat_char: 0.10
+    punctuation_drop: 0.08
+    function_word_drop: 0.11
+    word_drop: 0.05
+    word_order: 0.06
+    lowercase: 0.02
+
+  function_words:
+    - "a"
+    - "an"
+    - "the"
+    - "is"
+    - "are"
+    - "was"
+    - "were"
+    - "be"
+    - "been"
+    - "being"
+    - "to"
+    - "of"
+    - "in"
+    - "on"
+    - "for"
+    - "with"
+    - "at"
+    - "by"
+    - "from"
+    - "as"
+    - "that"
+    - "this"
+    - "these"
+    - "those"
+    - "it"
+    - "its"
+    - "there"
+    - "here"
+    - "very"
+    - "really"
+    - "quite"
+    - "just"
+    - "so"
+
+  protected_words:
+    - "not"
+    - "no"
+    - "never"
+    - "cannot"
+    - "cant"
+    - "can't"
+    - "without"
+    - "hardly"
+    - "barely"
+    - "neither"
+    - "nor"
+    - "good"
+    - "great"
+    - "excellent"
+    - "amazing"
+    - "wonderful"
+    - "best"
+    - "love"
+    - "loved"
+    - "like"
+    - "liked"
+    - "bad"
+    - "terrible"
+    - "awful"
+    - "worst"
+    - "boring"
+    - "dull"
+    - "hate"
+    - "hated"
+    - "poor"
+    - "disappointing"
+    - "funny"
+    - "beautiful"
+    - "perfect"
+    - "horrible"
+    - "brilliant"
+    - "enjoyable"
+    - "unpleasant"
+    - "charming"
+    - "moving"
+    - "annoying"
+    - "weak"
+    - "strong"
+
+# Cleaner training noise.
+# Keep the same as downstream noise for matched-noise experiments.
+cleaner_noise:
+  enabled: true
+  type: human_like
+  ratio: 0.40
+  min_word_length: 4
+  focus_sentiment_words: true
+  preserve_label: true
+  punctuation_drop_prob: 0.75
+  ops_multiplier: 10
+
+  human_like_weights:
+    char_swap: 0.16
+    char_delete: 0.15
+    char_insert: 0.14
+    keyboard_substitute: 0.13
+    repeat_char: 0.10
+    punctuation_drop: 0.08
+    function_word_drop: 0.11
+    word_drop: 0.05
+    word_order: 0.06
+    lowercase: 0.02
+
+  function_words:
+    - "a"
+    - "an"
+    - "the"
+    - "is"
+    - "are"
+    - "was"
+    - "were"
+    - "be"
+    - "been"
+    - "being"
+    - "to"
+    - "of"
+    - "in"
+    - "on"
+    - "for"
+    - "with"
+    - "at"
+    - "by"
+    - "from"
+    - "as"
+    - "that"
+    - "this"
+    - "these"
+    - "those"
+    - "it"
+    - "its"
+    - "there"
+    - "here"
+    - "very"
+    - "really"
+    - "quite"
+    - "just"
+    - "so"
+
+  protected_words:
+    - "not"
+    - "no"
+    - "never"
+    - "cannot"
+    - "cant"
+    - "can't"
+    - "without"
+    - "hardly"
+    - "barely"
+    - "neither"
+    - "nor"
+    - "good"
+    - "great"
+    - "excellent"
+    - "amazing"
+    - "wonderful"
+    - "best"
+    - "love"
+    - "loved"
+    - "like"
+    - "liked"
+    - "bad"
+    - "terrible"
+    - "awful"
+    - "worst"
+    - "boring"
+    - "dull"
+    - "hate"
+    - "hated"
+    - "poor"
+    - "disappointing"
+    - "funny"
+    - "beautiful"
+    - "perfect"
+    - "horrible"
+    - "brilliant"
+    - "enjoyable"
+    - "unpleasant"
+    - "charming"
+    - "moving"
+    - "annoying"
+    - "weak"
+    - "strong"
+
+# ============================================================
+# Downstream sentiment models
+# ============================================================
+models:
+  encoder_only:
+    enabled: true
+    run_name: distilbert_{dataset_key}_confidence
+    architecture: encoder_only
+    model_id: distilbert-base-uncased
+    max_length: 256
+    eval_batch_size: 32
+
+  decoder_only:
+    enabled: true
+    run_name: distilgpt2_{dataset_key}_confidence
+    architecture: decoder_only
+    model_id: distilgpt2
+    max_length: 256
+    prompt_template: "Review: {text}\nSentiment:"
+    train_template: "Review: {text}\nSentiment: {label}"
+    label_texts:
+      0: " negative"
+      1: " positive"
+
+  encoder_decoder:
+    enabled: true
+    run_name: t5small_{dataset_key}_confidence
+    architecture: encoder_decoder
+    model_id: t5-small
+    max_source_length: 256
+    max_target_length: 8
+    source_prefix: "classify sentiment: "
+    label_texts:
+      0: "negative"
+      1: "positive"
+
+downstream_training:
+  num_train_epochs: 3
+  per_device_train_batch_size: 16
+  per_device_eval_batch_size: 32
+  learning_rate: 0.00002
+  weight_decay: 0.01
+  warmup_ratio: 0.06
+  logging_steps: 50
+  save_total_limit: 1
+  fp16: false
+  gradient_accumulation_steps: 1
+
+# ============================================================
+# Neural cleaner models
+# They are trained on noisy-clean pairs generated from IMDB train text.
+# ============================================================
+cleaner_models:
+  encoder_decoder_cleaner:
+    enabled: true
+    run_name: ediclean_t5small_{dataset_key}_confidence
+    architecture: encoder_decoder_cleaner
+    model_id: t5-small
+    source_prefix: "correct: "
+    max_source_length: 256
+    max_target_length: 256
+    clean_batch_size: 8
+    num_beams: 4
+    use_cache: true
+
+  decoder_only_cleaner:
+    enabled: true
+    run_name: decoderclean_distilgpt2_{dataset_key}_confidence
+    architecture: decoder_only_cleaner
+    model_id: distilgpt2
+    max_length: 320
+    max_new_tokens: 160
+    clean_batch_size: 4
+    num_beams: 1
+    prompt_template: "Correct the noisy sentence.\nInput: {noisy}\nOutput:"
+    train_template: "Correct the noisy sentence.\nInput: {noisy}\nOutput: {clean}"
+    use_cache: true
+
+cleaner_training:
+  num_train_epochs: 3
+  per_device_train_batch_size: 8
+  learning_rate: 0.00005
+  weight_decay: 0.01
+  warmup_ratio: 0.06
+  logging_steps: 50
+  save_total_limit: 1
+  fp16: false
+  gradient_accumulation_steps: 1
+
+# ============================================================
+# Non-neural cleaning baseline
+# ============================================================
+algorithmic_cleaner:
+  enabled: true
+  name: ruleclean
+  lowercase: false
+  normalize_whitespace: true
+  reduce_repeated_chars: true
+  spellcheck: true
+  min_token_length: 4
+  preserve_case: true
+  use_cache: true
