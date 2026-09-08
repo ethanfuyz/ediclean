@@ -1,4 +1,4 @@
-# EdiClean v2
+# EdiClean
 
 This project runs a full noisy-input robustness pipeline for small Transformer NLP models.
 
